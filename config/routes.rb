@@ -11,4 +11,8 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "posts#index"
+
+  get 'top_urls', to: 'page_views#top_urls'
+  get 'top_referrers', to: 'page_views#top_referrers'
+
 end
