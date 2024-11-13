@@ -9,6 +9,7 @@
 #   end
 
 require 'faker'
+require 'activerecord-import/base'
 
 URLS = [
   'http://apple.com', 'https://apple.com', 'https://www.apple.com',
@@ -21,14 +22,26 @@ REFERRERS = [
   'http://developer.apple.com', nil, Faker::Internet.url
 ]
 
-1_000_000.times do
-  PageView.create!({
-                     url: URLS.sample,
-                     referrer: REFERRERS.sample,
-                     viewed_at: Faker::Time.between(from: 14.days.ago, to: Time.now)
-                   })
-  # Add batch size for performance, e.g., every 1000 records
-  if PageView.count % 1000 == 0
-    puts "Inserted #{PageView.count} records."
+# Array to hold records for batch processing
+records = []
+
+PageView.transaction do # Wrap the whole thing in a transaction
+  1_000_000.times do |i|
+    # Build new records for the batch
+    records << PageView.new(
+      url: URLS.sample,
+      referrer: REFERRERS.sample,
+      viewed_at: Faker::Time.between(from: 14.days.ago, to: Time.now)
+    )
+
+    # Insert records in batches of 1000 (avoid 1 million insert one by one basically)
+    if (i + 1) % 1000 == 0
+      PageView.import(records)
+      puts "Inserted #{i + 1} records."
+      records = []
+    end
   end
+
+  # Insert any remaining records
+  PageView.import(records) unless records.empty?
 end
