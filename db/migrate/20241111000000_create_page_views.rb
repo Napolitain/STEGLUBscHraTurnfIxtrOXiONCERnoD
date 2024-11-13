@@ -13,7 +13,7 @@ class CreatePageViews < ActiveRecord::Migration[8.0]
     # Adding 'hash_value' column
     add_column :page_views, :hash_value, :string
 
-    # Use Rails callbacks for setting the 'hash_value' value
+    # Rails callbacks
     reversible do |dir|
       dir.up do
         execute <<-SQL
